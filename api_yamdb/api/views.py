@@ -1,3 +1,4 @@
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
@@ -5,7 +6,6 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from users.models import User
-from django.contrib.auth.tokens import default_token_generator
 
 from .serializers import SignUpSerializer, TokenSerializer
 
@@ -15,7 +15,7 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     queryset = User.objects.all()
 
     def create(self, request):
-        #t = User.objects.filter(**request.data).exists()
+        # t = User.objects.filter(**request.data).exists()
         if User.objects.filter(**request.data).exists():
             user = get_object_or_404(User, username=request.data['username'])
             self.send_confirmation_code(user)
@@ -47,7 +47,7 @@ def token(request):
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(
         User,
-        username=serializer.validated_data['username']
+        username=serializer.validated_data['username'],
     )
 
     if not default_token_generator.check_token(
