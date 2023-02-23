@@ -1,6 +1,5 @@
-from rest_framework import serializers
 from django.shortcuts import get_object_or_404
-
+from rest_framework import serializers
 from reviews.models import Comment, Review, Title
 
 
@@ -21,6 +20,12 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         read_only=True,
         default=serializers.CurrentUserDefault()
+    )
+
+    title = serializers.SlugRelatedField(
+        slug_field='name',
+        read_only=True,
+        queryset=Title.objects.all()
     )
 
     def validate(self, attrs):
