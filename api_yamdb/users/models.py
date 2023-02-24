@@ -1,22 +1,5 @@
 from django.contrib.auth.models import AbstractUser
-# from django.contrib.auth.models import UserManager as manger
 from django.db import models
-
-# class UserManager(manger):
-#     def create_superuser(
-#         self,
-#         username,
-#         email=None,
-#         password=None,
-#         **extra_fields
-#     ):
-#         super().create_superuser(
-#             username,
-#             email,
-#             password,
-#             **extra_fields
-#         )
-#         extra_fields.setdefault('role', 'test')
 
 
 class User(AbstractUser):
