@@ -43,7 +43,7 @@ class TokenSerializer(serializers.Serializer):
         write_only=True,
     )
     confirmation_code = serializers.CharField(
-        max_length=8,
+        max_length=100,
         write_only=True,
     )
 
