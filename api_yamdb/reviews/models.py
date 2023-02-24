@@ -53,7 +53,7 @@ class Title(models.Model):
         value = self.reviews.all().aggregate(
             Avg('score')).get('score__avg')
         if value:
-            return round(value, 1)
+            return int(value)
         return None
 
     def __str__(self):
