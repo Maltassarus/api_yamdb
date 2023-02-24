@@ -60,25 +60,21 @@ def token(request):
     return Response({'token': str(jwt)}, status=status.HTTP_200_OK)
 
 
-class CategoryCreateListDestroyViewSet(mixins.CreateModelMixin,
-                                       mixins.ListModelMixin,
-                                       mixins.DestroyModelMixin,
-                                       viewsets.GenericViewSet):
+class CreateListDestroyViewSet(mixins.CreateModelMixin,
+                               mixins.ListModelMixin,
+                               mixins.DestroyModelMixin,
+                               viewsets.GenericViewSet):
+    permission_classes = (ReadOnly | IsAdminOrSuperuser,)
+    pagination_class = LimitOffsetPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+
+
+class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (ReadOnly | IsAdminOrSuperuser,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
-class GenreCreateListDestroyViewSet(mixins.CreateModelMixin,
-                                    mixins.ListModelMixin,
-                                    mixins.DestroyModelMixin,
-                                    viewsets.GenericViewSet):
+class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (ReadOnly | IsAdminOrSuperuser,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
