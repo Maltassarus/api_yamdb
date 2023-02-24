@@ -1,9 +1,11 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, status, viewsets, filters
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework_simplejwt.tokens import AccessToken
@@ -12,15 +14,18 @@ from reviews.models import Title, Category, Genre
 
 from .permissions import IsAdminOrSuperuser, IsModerator, IsOwner, ReadOnly
 from .serializers import (SignUpSerializer, TokenSerializer,
+                          UserAdminSerializer, UserSerializer,
                           CategorySerializer, GenreSerializer)
 
 
 class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     serializer_class = SignUpSerializer
     queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    http_method_names = ['post']
 
     def create(self, request):
-        if User.objects.filter(**request.data).exists():
+        if self.is_user_already_existing(request):
             user = get_object_or_404(User, username=request.data['username'])
             self.send_confirmation_code(user)
             return Response(request.data, status=status.HTTP_200_OK,)
@@ -38,8 +43,16 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         recipient_list = [user.email]
         send_mail(subject, message, from_email, recipient_list)
 
+    def is_user_already_existing(self, request):
+        return (
+            User.objects
+            .filter(username=request.data.get('username', ''))
+            .filter(email=request.data.get('email', ''))
+            .exists()
+        )
 
-@api_view(['POST'])
+
+@api_view(['post'])
 @permission_classes([AllowAny])
 def token(request):
     serializer = TokenSerializer(data=request.data)
@@ -58,6 +71,36 @@ def token(request):
 
     jwt = AccessToken.for_user(user)
     return Response({'token': str(jwt)}, status=status.HTTP_200_OK)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    serializer_class = UserAdminSerializer
+    queryset = User.objects.all()
+    permission_classes = (IsAdminOrSuperuser,)
+    pagination_class = LimitOffsetPagination
+    lookup_field = 'username'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+    http_method_names = ['get', 'post', 'patch', 'delete']
+
+    @action(
+        detail=False,
+        methods=['get', 'patch'],
+        permission_classes=(IsAuthenticated,),
+        serializer_class=UserSerializer,
+    )
+    def me(self, requset):
+        if requset.method == 'GET':
+            serializer = self.get_serializer(requset.user)
+            return Response(serializer.data, status.HTTP_200_OK)
+        serializer = self.get_serializer(
+            requset.user,
+            data=requset.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status.HTTP_200_OK)
 
 
 class CreateListDestroyViewSet(mixins.CreateModelMixin,
