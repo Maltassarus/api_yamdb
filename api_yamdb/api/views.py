@@ -111,6 +111,7 @@ class CreateListDestroyViewSet(mixins.CreateModelMixin,
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
