@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'reviews.apps.ReviewsConfig',
     'rest_framework',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -117,6 +118,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 5,
+    'DEFAULT_FILTER_BACKENDS': 'django_filters.rest_framework.DjangoFilterBackend',
 }
 
 SIMPLE_JWT = {
