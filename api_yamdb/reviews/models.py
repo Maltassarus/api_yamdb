@@ -1,5 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Avg
 from users.models import User
 
 
@@ -47,6 +48,14 @@ class Title(models.Model):
     )
     genre = models.ManyToManyField(Genre)
 
+    @property
+    def rating(self):
+        value = self.reviews.all().aggregate(
+            Avg('score')).get('score__avg')
+        if value:
+            return int(value)
+        return None
+
     def __str__(self):
         return self.name
 
@@ -54,12 +63,12 @@ class Title(models.Model):
 class Review(models.Model):
     title = models.ForeignKey(
         Title,
-        related_name='Reviews',
+        related_name='reviews',
         on_delete=models.CASCADE
     )
     author = models.ForeignKey(
         User,
-        related_name='Reviews',
+        related_name='reviews',
         on_delete=models.CASCADE,
         null=False
     )
