@@ -2,11 +2,13 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from users.models import User
 
+from .permissions import IsAdminOrSuperuser, IsModerator, IsOwner, ReadOnly
 from .serializers import SignUpSerializer, TokenSerializer
 
 
@@ -15,17 +17,10 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     queryset = User.objects.all()
 
     def create(self, request):
-        # t = User.objects.filter(**request.data).exists()
         if User.objects.filter(**request.data).exists():
             user = get_object_or_404(User, username=request.data['username'])
             self.send_confirmation_code(user)
-            return Response(
-                {
-                    'email': request.data['email'],
-                    'username': request.data['username'],
-                },
-                status=status.HTTP_200_OK,
-            )
+            return Response(request.data, status=status.HTTP_200_OK,)
         response = super().create(request)
         user = get_object_or_404(User, username=response.data['username'])
         self.send_confirmation_code(user)
@@ -42,6 +37,7 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def token(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)

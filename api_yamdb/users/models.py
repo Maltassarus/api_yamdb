@@ -1,5 +1,5 @@
 from django.contrib.auth.models import AbstractUser
-#from django.contrib.auth.models import UserManager as manger
+# from django.contrib.auth.models import UserManager as manger
 from django.db import models
 
 # class UserManager(manger):
@@ -33,7 +33,13 @@ class User(AbstractUser):
     )
     bio = models.TextField(blank=True)
 
-    #objects = UserManager()
+    @property
+    def is_admin(self):
+        return self.role == self.Role.ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == self.Role.MODERATOR
 
     class Meta:
         constraints = [
