@@ -1,15 +1,18 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, status, viewsets
+from rest_framework import mixins, status, viewsets, filters
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework_simplejwt.tokens import AccessToken
 from users.models import User
+from reviews.models import Title, Category, Genre
 
 from .permissions import IsAdminOrSuperuser, IsModerator, IsOwner, ReadOnly
-from .serializers import SignUpSerializer, TokenSerializer
+from .serializers import (SignUpSerializer, TokenSerializer,
+                          CategorySerializer, GenreSerializer)
 
 
 class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
@@ -55,3 +58,23 @@ def token(request):
 
     jwt = AccessToken.for_user(user)
     return Response({'token': str(jwt)}, status=status.HTTP_200_OK)
+
+
+class CreateListDestroyViewSet(mixins.CreateModelMixin,
+                               mixins.ListModelMixin,
+                               mixins.DestroyModelMixin,
+                               viewsets.GenericViewSet):
+    permission_classes = (ReadOnly | IsAdminOrSuperuser,)
+    pagination_class = LimitOffsetPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+
+
+class CategoryViewSet(CreateListDestroyViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(CreateListDestroyViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
