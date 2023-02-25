@@ -61,7 +61,7 @@ def token(request):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAdminOrSuperuser, IsModerator]
+    permission_classes = [IsAdminOrSuperuser, IsModerator, IsOwner, ReadOnly]
 
     def get_review(self):
         id = self.kwargs.get('review_id')
@@ -76,7 +76,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAdminOrSuperuser, IsModerator]
+    permission_classes = [IsAdminOrSuperuser, IsModerator, IsOwner, ReadOnly]
 
     def get_title(self):
         id = self.kwargs.get('title_id')
