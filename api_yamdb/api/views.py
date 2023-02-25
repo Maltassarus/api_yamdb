@@ -11,12 +11,14 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Title
 from users.models import User
+from reviews.models import Review, Title
 
 from .permissions import IsAdminOrSuperuser, IsCanChangeOrReadOnly, ReadOnly
 from .serializers import (CategorySerializer, GenreSerializer,
                           SignUpSerializer, TitleGetSerializer,
                           TitleSerializer, TokenSerializer,
-                          UserAdminSerializer, UserSerializer)
+                          UserAdminSerializer, UserSerializer,
+                          CommentSerializer, ReviewSerializer)
 
 
 class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
@@ -72,6 +74,36 @@ def token(request):
 
     jwt = AccessToken.for_user(user)
     return Response({'token': str(jwt)}, status=status.HTTP_200_OK)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [IsCanChangeOrReadOnly]
+
+    def get_review(self):
+        id = self.kwargs.get('review_id')
+        return get_object_or_404(Review, id=id)
+
+    def get_queryset(self):
+        return self.get_review().comments.all()
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, review=self.get_review())
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = [IsCanChangeOrReadOnly]
+
+    def get_title(self):
+        id = self.kwargs.get('title_id')
+        return get_object_or_404(Title, id=id)
+
+    def get_queryset(self):
+        return self.get_title().reviews.all()
+
+    def perform_create(self, serializer):
+        serializer.save(title=self.get_title(), author=self.request.user)
 
 
 class UserViewSet(viewsets.ModelViewSet):
