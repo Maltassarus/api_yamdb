@@ -12,6 +12,4 @@ class AdminUser(admin.ModelAdmin):
         'first_name',
         'last_name',
         'role',
-        #'confirmation_code',
-        'password',
     )

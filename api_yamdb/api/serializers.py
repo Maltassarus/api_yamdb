@@ -1,33 +1,16 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
-from reviews.models import Comment, Review, Title, Category, Genre
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 
-class SignUpSerializer(serializers.ModelSerializer):
+class SignUpBaseSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         max_length=254,
         validators=[UniqueValidator(queryset=User.objects.all())],
 
     )
-
-    class Meta:
-        model = User
-        fields = ('email', 'username',)
-        extra_kwargs = {
-            'username': {
-                'required': True,
-                'max_length': 150,
-            },
-        }
-        validators = [
-            UniqueTogetherValidator(
-                queryset=User.objects.all(),
-                fields=['username', 'email'],
-                message='Пользователь с такими данными уже существует.',
-            )
-        ]
 
     def validate_username(self, username):
         if username == 'me':
@@ -35,6 +18,29 @@ class SignUpSerializer(serializers.ModelSerializer):
                 'Использовать имя \'me\' в качестве username запрещено.'
             )
         return username
+
+
+class SignUpMetaBaseSerializer:
+    model = User
+    validators = [
+        UniqueTogetherValidator(
+            queryset=User.objects.all(),
+            fields=['username', 'email'],
+            message='Пользователь с такими данными уже существует.',
+        )
+    ]
+
+
+class SignUpSerializer(SignUpBaseSerializer):
+
+    class Meta(SignUpMetaBaseSerializer):
+        fields = ('email', 'username',)
+        extra_kwargs = {
+            'username': {
+                'required': True,
+                'max_length': 150,
+            },
+        }
 
 
 class TokenSerializer(serializers.Serializer):
@@ -46,6 +52,39 @@ class TokenSerializer(serializers.Serializer):
         max_length=100,
         write_only=True,
     )
+
+
+class UserMetaBaseSerializer(SignUpMetaBaseSerializer):
+    fields = (
+        'username',
+        'email',
+        'first_name',
+        'last_name',
+        'bio',
+        'role',
+    )
+    extra_kwargs = {
+        'username': {
+            'required': True,
+            'max_length': 150,
+        },
+        'first_name': {
+            'max_length': 150,
+        },
+        'last_name': {
+            'max_length': 150,
+        },
+    }
+
+
+class UserAdminSerializer(SignUpBaseSerializer):
+    class Meta(UserMetaBaseSerializer):
+        pass
+
+
+class UserSerializer(SignUpBaseSerializer):
+    class Meta(UserMetaBaseSerializer):
+        read_only_fields = ('role',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -104,3 +143,36 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = ('name', 'slug',)
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Genre.objects.all(),
+        many=True
+    )
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+
+    class Meta:
+        model = Title
+        fields = '__all__'
+
+
+class TitleGetSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
+
+    class Meta:
+        model = Title
+        fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'category',
+            'genre',
+            'rating'
+        )
