@@ -95,6 +95,11 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only=True,
         default=serializers.CurrentUserDefault()
     )
+    review = serializers.SlugRelatedField(
+        slug_field='text',
+        many=False,
+        read_only=True
+    )
 
     class Meta:
         model = Comment
@@ -110,7 +115,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     title = serializers.SlugRelatedField(
         slug_field='name',
-        queryset=Title.objects.all()
+        read_only=True
     )
 
     def validate(self, attrs):
@@ -123,7 +128,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
         if Review.objects.filter(
             author=user,
-            title=title
+            title_id=title
         ).exists():
             raise serializers.ValidationError(
                 'Отзыв уже написан'
