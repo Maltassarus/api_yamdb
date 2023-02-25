@@ -1,3 +1,5 @@
+import datetime
+
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
@@ -134,12 +136,16 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=True, max_length=256)
+
     class Meta:
         model = Category
         fields = ('name', 'slug',)
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=True, max_length=256)
+
     class Meta:
         model = Genre
         fields = ('name', 'slug',)
@@ -155,6 +161,13 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         queryset=Category.objects.all()
     )
+    description = serializers.CharField(required=False)
+
+    def validate_year(self, value):
+        year = datetime.datetime.now().year
+        if value > year:
+            raise serializers.ValidationError('Год не можеть быть больше текущего')
+        return value
 
     class Meta:
         model = Title
