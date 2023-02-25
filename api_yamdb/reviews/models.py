@@ -83,6 +83,12 @@ class Review(models.Model):
         auto_now_add=True
     )
 
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=['author', 'title'],
+            name='link_review'
+        )]
+
 
 class Comment(models.Model):
     author = models.ForeignKey(
