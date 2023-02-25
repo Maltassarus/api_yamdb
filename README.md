@@ -78,10 +78,17 @@ git clone https://github.com/Maltassarus/api_yamdb.git
 cd api_yamdb
 ```
 2. Cоздать и активировать виртуальное окружение:
+* Windows
 ```bash
 python -m venv venv
 
 source venv/Scripts/activate
+```
+* Mac
+```bash
+python3 -m venv venv
+
+source venv/bin/activate
 ```
 3. Установить зависимости из файла ```requirements.txt```:
 ```bash
