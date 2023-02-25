@@ -9,16 +9,14 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Genre, Review, Title
 from users.models import User
-from reviews.models import Review, Title
 
 from .permissions import IsAdminOrSuperuser, IsCanChangeOrReadOnly, ReadOnly
-from .serializers import (CategorySerializer, GenreSerializer,
-                          SignUpSerializer, TitleGetSerializer,
-                          TitleSerializer, TokenSerializer,
-                          UserAdminSerializer, UserSerializer,
-                          CommentSerializer, ReviewSerializer)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer, SignUpSerializer,
+                          TitleGetSerializer, TitleSerializer, TokenSerializer,
+                          UserAdminSerializer, UserSerializer)
 
 
 class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):

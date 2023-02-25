@@ -171,7 +171,9 @@ class TitleSerializer(serializers.ModelSerializer):
     def validate_year(self, value):
         year = datetime.datetime.now().year
         if value > year:
-            raise serializers.ValidationError('Год не можеть быть больше текущего')
+            raise serializers.ValidationError(
+                'Год не можеть быть больше текущего'
+            )
         return value
 
     class Meta:
