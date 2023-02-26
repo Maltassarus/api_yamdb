@@ -44,9 +44,13 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         subject = 'Confirmation of registration'
         code = default_token_generator.make_token(user)
         message = f'confirmation_code : "{code}"'
-        from_email = 'api@yamdb.ru'
         recipient_list = [user.email]
-        send_mail(subject, message, from_email, recipient_list)
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=None,
+            recipient_list=recipient_list,
+        )
 
     def is_user_already_existing(self, request):
         return (
