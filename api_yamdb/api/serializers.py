@@ -2,7 +2,7 @@ import datetime
 
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
@@ -21,6 +21,7 @@ class SignUpBaseSerializer(serializers.ModelSerializer):
                 'Использовать имя \'me\' в качестве username запрещено.'
             )
         return username
+
 
 class SignUpSerializer(SignUpBaseSerializer):
 
