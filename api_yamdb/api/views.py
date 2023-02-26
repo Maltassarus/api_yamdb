@@ -128,13 +128,13 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,),
         serializer_class=UserSerializer,
     )
-    def me(self, requset):
-        if requset.method == 'GET':
-            serializer = self.get_serializer(requset.user)
+    def me(self, request):
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
             return Response(serializer.data, status.HTTP_200_OK)
         serializer = self.get_serializer(
-            requset.user,
-            data=requset.data,
+            request.user,
+            data=request.data,
             partial=True,
         )
         serializer.is_valid(raise_exception=True)
