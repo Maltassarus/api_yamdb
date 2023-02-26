@@ -1,6 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Avg
+
 from users.models import User
 
 
@@ -13,6 +13,11 @@ class Category(models.Model):
         max_length=50,
         unique=True
     )
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
     def __str__(self):
         return self.slug
@@ -27,6 +32,11 @@ class Genre(models.Model):
         max_length=50,
         unique=True
     )
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
 
     def __str__(self):
         return self.slug
@@ -48,13 +58,10 @@ class Title(models.Model):
     )
     genre = models.ManyToManyField(Genre)
 
-    @property
-    def rating(self):
-        value = self.reviews.all().aggregate(
-            Avg('score')).get('score__avg')
-        if value:
-            return int(value)
-        return None
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Произведние'
+        verbose_name_plural = 'Произведения'
 
     def __str__(self):
         return self.name
@@ -88,6 +95,9 @@ class Review(models.Model):
             fields=['author', 'title'],
             name='link_review'
         )]
+        ordering = ['-pub_date']
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
 
 
 class Comment(models.Model):
@@ -105,3 +115,8 @@ class Comment(models.Model):
     pub_date = models.DateTimeField(
         auto_now_add=True
     )
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
