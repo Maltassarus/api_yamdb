@@ -21,21 +21,10 @@ class SignUpBaseSerializer(serializers.ModelSerializer):
             )
         return username
 
-
-class SignUpMetaBaseSerializer:
-    model = User
-    validators = [
-        UniqueTogetherValidator(
-            queryset=User.objects.all(),
-            fields=['username', 'email'],
-            message='Пользователь с такими данными уже существует.',
-        )
-    ]
-
-
 class SignUpSerializer(SignUpBaseSerializer):
 
-    class Meta(SignUpMetaBaseSerializer):
+    class Meta:
+        model = User
         fields = ('email', 'username',)
         extra_kwargs = {
             'username': {
@@ -56,7 +45,8 @@ class TokenSerializer(serializers.Serializer):
     )
 
 
-class UserMetaBaseSerializer(SignUpMetaBaseSerializer):
+class UserMetaBaseSerializer:
+    model = User
     fields = (
         'username',
         'email',
