@@ -6,6 +6,7 @@ from users.models import User
 
 class Category(models.Model):
     name = models.CharField(
+        'Категория',
         max_length=256,
         unique=True
     )
@@ -25,6 +26,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(
+        'Жанр',
         max_length=256,
         unique=True
     )
@@ -44,19 +46,24 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(
+        'Название',
         max_length=256,
         unique=True
     )
-    year = models.IntegerField()
-    description = models.TextField()
+    year = models.IntegerField('Год')
+    description = models.TextField('Описание')
     category = models.ForeignKey(
         Category,
         related_name='titles',
+        verbose_name='Категория',
         on_delete=models.SET_NULL,
         null=True,
         blank=True
     )
-    genre = models.ManyToManyField(Genre)
+    genre = models.ManyToManyField(
+        Genre,
+        verbose_name='Жанры'
+    )
 
     class Meta:
         ordering = ['-id']
