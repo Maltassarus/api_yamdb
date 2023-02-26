@@ -1,7 +1,7 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters import CharFilter, FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
@@ -9,9 +9,10 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
-
+from .filters import TitleFilter
 from .permissions import IsAdminOrSuperuser, IsCanChangeOrReadOnly, ReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, SignUpSerializer,
@@ -31,7 +32,10 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             self.send_confirmation_code(user)
             return Response(request.data, status=status.HTTP_200_OK,)
         response = super().create(request)
-        user = get_object_or_404(User, username=response.data['username'])
+        user, _ = User.objects.get_or_create(
+            username=response.data['username'],
+            email=response.data['email'],
+        )
         self.send_confirmation_code(user)
         response.status_code = status.HTTP_200_OK
         return response
@@ -40,9 +44,13 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         subject = 'Confirmation of registration'
         code = default_token_generator.make_token(user)
         message = f'confirmation_code : "{code}"'
-        from_email = 'api@yamdb.ru'
         recipient_list = [user.email]
-        send_mail(subject, message, from_email, recipient_list)
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=None,
+            recipient_list=recipient_list,
+        )
 
     def is_user_already_existing(self, request):
         return (
@@ -120,13 +128,13 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,),
         serializer_class=UserSerializer,
     )
-    def me(self, requset):
-        if requset.method == 'GET':
-            serializer = self.get_serializer(requset.user)
+    def me(self, request):
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
             return Response(serializer.data, status.HTTP_200_OK)
         serializer = self.get_serializer(
-            requset.user,
-            data=requset.data,
+            request.user,
+            data=request.data,
             partial=True,
         )
         serializer.is_valid(raise_exception=True)
@@ -155,31 +163,8 @@ class GenreViewSet(CreateListDestroyViewSet):
     serializer_class = GenreSerializer
 
 
-class TitleFilter(FilterSet):
-    category = CharFilter(
-        field_name='category__slug',
-        lookup_expr='icontains'
-    )
-    genre = CharFilter(
-        field_name='genre__slug',
-        lookup_expr='icontains'
-    )
-    name = CharFilter(
-        field_name='name',
-        lookup_expr='contains'
-    )
-    year = NumberFilter(
-        field_name="year",
-        lookup_expr='exact'
-    )
-
-    class Meta:
-        model = Title
-        fields = ('category', 'genre', 'name', 'year')
-
-
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     permission_classes = (ReadOnly | IsAdminOrSuperuser,)
     pagination_class = LimitOffsetPagination
