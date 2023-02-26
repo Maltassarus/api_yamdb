@@ -33,7 +33,10 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             self.send_confirmation_code(user)
             return Response(request.data, status=status.HTTP_200_OK,)
         response = super().create(request)
-        user = get_object_or_404(User, username=response.data['username'])
+        user, _ = User.objects.get_or_create(
+            username=response.data['username'],
+            email=response.data['email'],
+        )
         self.send_confirmation_code(user)
         response.status_code = status.HTTP_200_OK
         return response
@@ -42,9 +45,13 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         subject = 'Confirmation of registration'
         code = default_token_generator.make_token(user)
         message = f'confirmation_code : "{code}"'
-        from_email = 'api@yamdb.ru'
         recipient_list = [user.email]
-        send_mail(subject, message, from_email, recipient_list)
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=None,
+            recipient_list=recipient_list,
+        )
 
     def is_user_already_existing(self, request):
         return (
@@ -122,13 +129,13 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,),
         serializer_class=UserSerializer,
     )
-    def me(self, requset):
-        if requset.method == 'GET':
-            serializer = self.get_serializer(requset.user)
+    def me(self, request):
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
             return Response(serializer.data, status.HTTP_200_OK)
         serializer = self.get_serializer(
-            requset.user,
-            data=requset.data,
+            request.user,
+            data=request.data,
             partial=True,
         )
         serializer.is_valid(raise_exception=True)
