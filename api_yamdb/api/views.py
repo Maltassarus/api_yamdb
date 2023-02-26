@@ -1,7 +1,7 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters import CharFilter, FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
@@ -9,9 +9,11 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
+from .filters import TitleFilter
 from .permissions import IsAdminOrSuperuser, IsCanChangeOrReadOnly, ReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, SignUpSerializer,
@@ -155,31 +157,8 @@ class GenreViewSet(CreateListDestroyViewSet):
     serializer_class = GenreSerializer
 
 
-class TitleFilter(FilterSet):
-    category = CharFilter(
-        field_name='category__slug',
-        lookup_expr='icontains'
-    )
-    genre = CharFilter(
-        field_name='genre__slug',
-        lookup_expr='icontains'
-    )
-    name = CharFilter(
-        field_name='name',
-        lookup_expr='contains'
-    )
-    year = NumberFilter(
-        field_name="year",
-        lookup_expr='exact'
-    )
-
-    class Meta:
-        model = Title
-        fields = ('category', 'genre', 'name', 'year')
-
-
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     permission_classes = (ReadOnly | IsAdminOrSuperuser,)
     pagination_class = LimitOffsetPagination
