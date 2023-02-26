@@ -12,6 +12,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
+
 from .permissions import IsAdminOrSuperuser, IsCanChangeOrReadOnly, ReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, SignUpSerializer,
@@ -31,7 +32,10 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             self.send_confirmation_code(user)
             return Response(request.data, status=status.HTTP_200_OK,)
         response = super().create(request)
-        user = get_object_or_404(User, username=response.data['username'])
+        user, _ = User.objects.get_or_create(
+            username=response.data['username'],
+            email=response.data['email'],
+        )
         self.send_confirmation_code(user)
         response.status_code = status.HTTP_200_OK
         return response
