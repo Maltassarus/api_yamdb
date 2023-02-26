@@ -13,7 +13,6 @@ from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
-
 from .filters import TitleFilter
 from .permissions import IsAdminOrSuperuser, IsCanChangeOrReadOnly, ReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
