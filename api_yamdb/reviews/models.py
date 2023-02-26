@@ -95,9 +95,6 @@ class Review(models.Model):
             fields=['author', 'title'],
             name='link_review'
         )]
-        ordering = ['-pub_date']
-        verbose_name = 'Отзыв'
-        verbose_name_plural = 'Отзывы'
 
 
 class Comment(models.Model):
@@ -115,8 +112,3 @@ class Comment(models.Model):
     pub_date = models.DateTimeField(
         auto_now_add=True
     )
-
-    class Meta:
-        ordering = ['-id']
-        verbose_name = 'Комментарий'
-        verbose_name_plural = 'Комментарии'
