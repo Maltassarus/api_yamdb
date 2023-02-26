@@ -1,11 +1,12 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Avg
+
 from users.models import User
 
 
 class Category(models.Model):
     name = models.CharField(
+        'Категория',
         max_length=256,
         unique=True
     )
@@ -13,6 +14,11 @@ class Category(models.Model):
         max_length=50,
         unique=True
     )
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
     def __str__(self):
         return self.slug
@@ -20,6 +26,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(
+        'Жанр',
         max_length=256,
         unique=True
     )
@@ -28,33 +35,40 @@ class Genre(models.Model):
         unique=True
     )
 
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
+
     def __str__(self):
         return self.slug
 
 
 class Title(models.Model):
     name = models.CharField(
+        'Название',
         max_length=256,
         unique=True
     )
-    year = models.IntegerField()
-    description = models.TextField()
+    year = models.IntegerField('Год')
+    description = models.TextField('Описание')
     category = models.ForeignKey(
         Category,
         related_name='titles',
+        verbose_name='Категория',
         on_delete=models.SET_NULL,
         null=True,
         blank=True
     )
-    genre = models.ManyToManyField(Genre)
+    genre = models.ManyToManyField(
+        Genre,
+        verbose_name='Жанры'
+    )
 
-    @property
-    def rating(self):
-        value = self.reviews.all().aggregate(
-            Avg('score')).get('score__avg')
-        if value:
-            return int(value)
-        return None
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Произведние'
+        verbose_name_plural = 'Произведения'
 
     def __str__(self):
         return self.name

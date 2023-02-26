@@ -22,21 +22,10 @@ class SignUpBaseSerializer(serializers.ModelSerializer):
             )
         return username
 
-
-class SignUpMetaBaseSerializer:
-    model = User
-    validators = [
-        UniqueTogetherValidator(
-            queryset=User.objects.all(),
-            fields=['username', 'email'],
-            message='Пользователь с такими данными уже существует.',
-        )
-    ]
-
-
 class SignUpSerializer(SignUpBaseSerializer):
 
-    class Meta(SignUpMetaBaseSerializer):
+    class Meta:
+        model = User
         fields = ('email', 'username',)
         extra_kwargs = {
             'username': {
@@ -57,7 +46,8 @@ class TokenSerializer(serializers.Serializer):
     )
 
 
-class UserMetaBaseSerializer(SignUpMetaBaseSerializer):
+class UserMetaBaseSerializer:
+    model = User
     fields = (
         'username',
         'email',
@@ -175,6 +165,10 @@ class TitleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Год не можеть быть больше текущего'
             )
+        if value < 0:
+            raise serializers.ValidationError(
+                'Год не может быть отрицательным'
+            )
         return value
 
     class Meta:
@@ -185,6 +179,7 @@ class TitleSerializer(serializers.ModelSerializer):
 class TitleGetSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
