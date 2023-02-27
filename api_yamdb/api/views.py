@@ -27,17 +27,19 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
     http_method_names = ['post']
 
     def create(self, request):
-        if self.is_user_already_existing(request):
-            user = get_object_or_404(User, username=request.data['username'])
-            self.send_confirmation_code(user)
-            return Response(request.data, status=status.HTTP_200_OK,)
-        response = super().create(request)
-        user, _ = User.objects.get_or_create(
-            username=response.data['username'],
-            email=response.data['email'],
+        serializer = self.get_serializer(data=request.data)
+        if self.is_user_not_existing(request):
+            serializer.is_valid(raise_exception=True)
+        else:
+            serializer.is_valid()
+        headers = self.get_success_headers(serializer.data)
+        response = Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+            headers=headers,
         )
+        user, _ = User.objects.get_or_create(**response.data)
         self.send_confirmation_code(user)
-        response.status_code = status.HTTP_200_OK
         return response
 
     def send_confirmation_code(self, user):
@@ -52,8 +54,8 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             recipient_list=recipient_list,
         )
 
-    def is_user_already_existing(self, request):
-        return (
+    def is_user_not_existing(self, request):
+        return not (
             User.objects
             .filter(username=request.data.get('username', ''))
             .filter(email=request.data.get('email', ''))
