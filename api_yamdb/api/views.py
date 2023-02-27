@@ -38,10 +38,7 @@ class SignUpViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             status=status.HTTP_200_OK,
             headers=headers,
         )
-        user, _ = User.objects.get_or_create(
-            username=response.data['username'],
-            email=response.data['email'],
-        )
+        user, _ = User.objects.get_or_create(**response.data)
         self.send_confirmation_code(user)
         return response
 
