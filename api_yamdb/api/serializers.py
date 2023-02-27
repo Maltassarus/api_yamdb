@@ -9,11 +9,6 @@ from users.models import User
 
 
 class SignUpBaseSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())],
-
-    )
 
     def validate_username(self, username):
         if username == 'me':
@@ -28,12 +23,6 @@ class SignUpSerializer(SignUpBaseSerializer):
     class Meta:
         model = User
         fields = ('email', 'username',)
-        extra_kwargs = {
-            'username': {
-                'required': True,
-                'max_length': 150,
-            },
-        }
 
 
 class TokenSerializer(serializers.Serializer):
@@ -57,18 +46,6 @@ class UserMetaBaseSerializer:
         'bio',
         'role',
     )
-    extra_kwargs = {
-        'username': {
-            'required': True,
-            'max_length': 150,
-        },
-        'first_name': {
-            'max_length': 150,
-        },
-        'last_name': {
-            'max_length': 150,
-        },
-    }
 
 
 class UserAdminSerializer(SignUpBaseSerializer):

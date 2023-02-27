@@ -127,7 +127,6 @@ class Comment(models.Model):
         verbose_name='Отзыв'
     )
     text = models.TextField(
-        max_length=1000,
         verbose_name='Текст'
     )
     pub_date = models.DateTimeField(
