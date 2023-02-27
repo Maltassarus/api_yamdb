@@ -23,7 +23,6 @@ class User(AbstractUser):
     last_name = models.CharField('Фамилия', max_length=150, blank=True)
     email = models.EmailField(
         'email адрес',
-        blank=True,
         max_length=254,
         unique=True,
     )
